@@ -44,6 +44,9 @@ void delete_node(Node* node);
 int in_order_visit_tree(const word_recognizer_t* wr,char* word,int start,int end,int* word_len);
 int solve_function(List* list);
 
+
+void check_word(word_recognizer_t* wr,int* result,Node* node,const char* string);
+inline void destroy_arg(arg_t* arg);
 void* check_hit_cache(word_recognizer_t* wr,char* to_be_found);
 //function passed to threadPool
 void* check_dictionary(void* arg);
@@ -133,13 +136,11 @@ int in_order_visit_tree(const word_recognizer_t* wr,char* word,int start,int end
 
 
 void* recognizer_work(void* arg){
-    char* t;
-    arg_t* passed_dictionary,*passed_c_miss;
+
 	linked_list_t* jobs_list=((arg_t*)arg)->wr->queue;
 	word_recognizer_t* wr=((arg_t*)arg)->wr;
 	char* string=(arg_t*)arg->string;
-    future_t* dictionary_result;
-    future_t* cache_miss_result;
+
 	Cell* cella;
 
 	bool uscita=false;
@@ -162,48 +163,14 @@ void* recognizer_work(void* arg){
 		}
 
 
-		//FIRST RESULT
-
-        //dictionary
-        passed_dictionary=(arg_t*)malloc(sizeof(arg_t));
-		if(!passed_dictionary){ debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
-        passed_dictionary->wr=wr;
-        passed_dictionary->string=malloc(sizeof(char)*strlen(string));
-		if(!passed_dictionary->string){debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
-        rangestrncpy(passed_dictionary->string,string,first->start,first->end);
-        passed_dictionary->string[first->end+1]='\0';
-        dictionary_result=add_job_tail(wr->tp,NULL,check_dictionary,passed_dictionary);
-
-        //cache miss
-        passed_c_miss=(arg_t*)malloc(sizeof(arg_t));
-        if(!passed_c_miss){ debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
-        passed_c_miss->wr=wr;
-        passed_c_miss->string=malloc(sizeof(char)*strlen(string));
-        if(!passed_c_miss->string){debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
-        rangestrncpy(passed_c_miss->string,string,first->start,first->end);
-        passed_c_miss->string[first->end+1]='\0';
-        cache_miss_result=add_job_tail(wr->tp,NULL,check_miss_cache,passed_c_miss);
 
 
-        //cache hit svolta dal thread corrente
-        t=malloc(sizeof(char)*strlen(string));
-        if(!t){debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
-        rangestrncpy(t,string,first->start,first->end);
-        t[first->end+1]='\0';
-
-        if(check_hit_cache(wr,t)!=NULL||future_get(cache_miss_result)!=NULL||future_get(dictionary_result)!=NULL){
-            first_result=first->end-first->start+1;
-        }
-
-
-
-
-
-
-
+		check_word(wr,&first_result,first,string);
+        check_word(wr,&second_result,second,string);
+        check_word(wr,&third_result,third,string);
 
 		if(!uscita){
-			skip_result=
+			check_word(wr,skip_result,skip,string);
 		}
 
 		cella=(Cell*)malloc(sizeof(Cell));
@@ -387,5 +354,67 @@ void* check_hit_cache(word_recognizer_t* wr,char* to_be_found){
         }
     }
     return NULL;
+
+}
+
+void destroy_arg(arg_t* arg){
+    free(arg->string);
+}
+
+
+
+void check_word(word_recognizer_t* wr,int* result,Node* node,const char* string){
+    char* t;
+    arg_t* passed_dictionary,*passed_c_miss;
+    future_t* dictionary_result;
+    future_t* cache_miss_result;
+
+
+    //dictionary
+    passed_dictionary=(arg_t*)malloc(sizeof(arg_t));
+    if(!passed_dictionary){ debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
+    passed_dictionary->wr=wr;
+    passed_dictionary->string=malloc(sizeof(char)*strlen(string));
+    if(!passed_dictionary->string){debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
+    rangestrncpy(passed_dictionary->string,string,node->start,node->end);
+    passed_dictionary->string[node->end+1]='\0';
+    dictionary_result=add_job_tail(wr->tp,NULL,check_dictionary,passed_dictionary);
+
+    //cache miss
+    passed_c_miss=(arg_t*)malloc(sizeof(arg_t));
+    if(!passed_c_miss){ debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
+    passed_c_miss->wr=wr;
+    passed_c_miss->string=malloc(sizeof(char)*strlen(string));
+    if(!passed_c_miss->string){debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
+    rangestrncpy(passed_c_miss->string,string,node->start,node->end);
+    passed_c_miss->string[node->end+1]='\0';
+    cache_miss_result=add_job_tail(wr->tp,NULL,check_miss_cache,passed_c_miss);
+
+
+    //cache hit svolta dal thread corrente
+    t=malloc(sizeof(char)*strlen(string));
+    if(!t){debug(stderr,"ERRORE malloc recognizer_work");return  NULL;}
+    rangestrncpy(t,string,node->start,node->end);
+    t[node->end+1]='\0';
+
+    if(check_hit_cache(wr,t)==NULL) {
+        if(future_get(cache_miss_result)==NULL){
+            if(future_get(dictionary_result)!=NULL){
+                result=node->end-node->start+1;
+                list_push_value(wr->cacheHit,t);
+            }else{
+                result=0;
+                list_push_value(wr->cacheHit,t);
+            }
+        }else{
+            result=0;
+        }
+    }else{
+        result=node->end-node->start+1;
+    }
+
+    //free varie
+    destroy_arg(passed_c_miss);
+    destroy_arg(passed_dictionary);
 
 }
