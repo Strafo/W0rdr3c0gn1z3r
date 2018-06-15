@@ -1,0 +1,3 @@
+[submodule "Thread-Pool-C"]
+	path = Thread-Pool-C
+	url = https://github.com/Strafo/Thread-Pool-C
