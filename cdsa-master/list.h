@@ -57,7 +57,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  *      ====  FUNCTIONS  ====
  *      Initializers:
- *          -   list_init
+ *          -   list_init_
  *      Properties:
  *          -   list_front
  *          -   list_back
@@ -87,7 +87,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *          -   list_cut
  *          -   list_paste
  *      Sorting:
- *          -   list_sort
+ *          -   list_sort_
  *
  *      ====  MACROS  ====
  *      Constants:
@@ -169,7 +169,7 @@ struct ListNode {
  *
  * @param list                  The @ref List to be initialized/reset.
  */
-void list_init(List *list);
+void list_init_(List *list);
 
 /**
  * Returns the front of the @ref list.
@@ -553,7 +553,7 @@ void list_paste(List *list, ListNode *left, ListNode *from, ListNode *to, ListNo
  * @param list                  The @ref List to sort.
  * @param compare               The compare function to be used.
  */
-void list_sort(List *list, int (*compare)(const ListNode *a, const ListNode *b));
+void list_sort_(List *list, int (*compare)(const ListNode *a, const ListNode *b));
 
 /* ========================================================================================================
  *

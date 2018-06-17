@@ -21,7 +21,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include "list.h"
 
-void list_init(List *list) {
+void list_init_(List *list) {
     assert(list);
 
     list->head = NULL;
@@ -262,7 +262,7 @@ void list_paste(List *list, ListNode *left, ListNode *from, ListNode *to, ListNo
     list->size += range_size;
 }
 
-void list_sort(List *list, int (*compare)(const ListNode *a, const ListNode *b)) {
+void list_sort_(List *list, int (*compare)(const ListNode *a, const ListNode *b)) {
     ListNode *head, *tail, *left, *right, *next;
     size_t list_size, num_merges, left_size, right_size;
 

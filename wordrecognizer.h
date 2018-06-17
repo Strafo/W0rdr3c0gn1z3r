@@ -13,7 +13,7 @@
 
 typedef struct  _word_recognizer  word_recognizer_t;
 
-float recognize(const word_recognizer_t* rec,const char* string);
+float recognize( word_recognizer_t* rec,const char* string);
 word_recognizer_t* create_recognizer(int nThread,int cs,int maxlength);
 void destroy_recognizer(word_recognizer_t* rec);
 bool set_recognizer_dictionary(const word_recognizer_t* rec,const char* filename);
