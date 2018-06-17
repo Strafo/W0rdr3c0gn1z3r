@@ -74,7 +74,7 @@ float recognize( word_recognizer_t* rec,const char* payload){
 	string[j]='\0';
 	debug(stderr,"stringa:");debug(stderr,string);debug(stderr,"\n");
 	debug(stderr,"chuncksize:");debugInt(stderr,rec->chuncksize);debug(stderr,"\n");
-	
+
 	val=(float)in_order_visit_tree(rec,string,0,rec->chuncksize-1,&len)/(float)strlen(string);
 
 	free(string);
@@ -137,7 +137,6 @@ int in_order_visit_tree( word_recognizer_t* wr,const char* word,int start,int en
 	if(list_push_value(wr->queue,(void*)end_value)<0){
 		debug(stderr,"ERROR pushing end_value to work queue");return -1;
 	}
-	
 
 	return *(final_result=(int*)future_get(checker_result));
 }
@@ -208,6 +207,7 @@ void* recognizer_work(void* arg){
 
 int solve_function(List* lista){//TODO debbugging here
 	List temp_list;
+	int return_value;
 	List *temp,*appoggio;
 	list_init_(&temp_list);
 	temp=&temp_list;
@@ -223,7 +223,7 @@ int solve_function(List* lista){//TODO debbugging here
         list_remove_front(lista);
 		third=list_entry(list_front(lista), Cell,n);
         list_remove_front(lista);
-        fprintf(stderr,"first:%d  second:%d  third:%d  size lista:%d\n",first->value,second->value,third->value, list_size(lista));
+      //  fprintf(stderr,"first:%d  second:%d  third:%d  size lista:%d\n",first->value,second->value,third->value, list_size(lista));
 
 		curr=(Cell*)malloc(sizeof( Cell));
 		if(!curr){debug(stderr,"ERRORE malloc solve_function");return -1;}
@@ -249,10 +249,10 @@ int solve_function(List* lista){//TODO debbugging here
 		}
 	}
 	if(list_size(temp)==1) {
+	    return_value=list_entry(list_front(temp), Cell,n)->value;
+	    //TODO free list temp
         break;
-    } else{
-	   // debug(stderr,"list size:");debugInt(stderr,list_size(temp)); //TODO
-	}
+    }
 	appoggio=lista;
 	lista=temp;
 	temp=appoggio;
@@ -260,7 +260,7 @@ int solve_function(List* lista){//TODO debbugging here
 
  }
 
-return list_entry(list_front(temp), Cell,n)->value;
+return return_value;
 }
 
 
@@ -415,23 +415,23 @@ void check_word(word_recognizer_t* wr,int* result,Node* node,const char* string)
             if(future_get(dictionary_result)!=NULL){
                 *result=node->end-node->start+1;
                 list_push_value(wr->cacheHit,t);
-                fprintf(stderr,"Found in  dictionary\n");//TODO remove
+                //fprintf(stderr,"Found in  dictionary\n");//TODO remove
             }else{
                 *result=0;
                 list_push_value(wr->cacheMiss,t);
-                fprintf(stderr,"not found in  dictionary\n");
+                //fprintf(stderr,"not found in  dictionary\n");
             }
         }else{
-            fprintf(stderr,"found in MISS cache\n");
+            //fprintf(stderr,"found in MISS cache\n");
             *result=0;
         }
     }else{
-        fprintf(stderr,"found in HIT cache\n");
+       // fprintf(stderr,"found in HIT cache\n");
         *result=node->end-node->start+1;
     }
 
 
-    fprintf(stderr,"\nresult:%d\n--------------------------------------\n",*result);
+    fprintf(stderr,"\nresult:%d\n--------------------------------------\n\n",*result);
     //free varie
     destroy_arg(passed_c_miss);
     destroy_arg(passed_dictionary);
