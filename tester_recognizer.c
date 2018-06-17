@@ -7,7 +7,7 @@ int main()
 	perror("ERR INIT");
 	}
 	printf("\n\n\n\n\nStarting:\n");
-	printf("result:%f",recognize(wr,"abib\0"));
+	printf("result:%f",recognize(wr,"aabib\0"));
 }
 
 /*abandonedly*/

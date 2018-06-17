@@ -41,7 +41,7 @@ inline void rangestrncpy(char* dest,const char* src,int startpos,int endpos);
 Node* create_node();
 void set_node(Node* node,int start,int end);
 void delete_node(Node* node);
-int in_order_visit_tree( word_recognizer_t* wr,char* word,int start,int end,int* word_len);
+int in_order_visit_tree( word_recognizer_t* wr,const char* word,int start,int end,int* word_len);
 int solve_function(List* list);
 void* recognizer_work(void* arg);
 
@@ -82,7 +82,7 @@ return val;
 }
 
 
-int in_order_visit_tree( word_recognizer_t* wr,char* word,int start,int end,int* word_len){
+int in_order_visit_tree( word_recognizer_t* wr,const char* word,int start,int end,int* word_len){
 
     arg_t* arg_checker;
     future_t *checker_result;
@@ -96,7 +96,8 @@ int in_order_visit_tree( word_recognizer_t* wr,char* word,int start,int end,int*
 
 	//init word checker thread
     arg_checker=(arg_t*)malloc(sizeof(arg_t));
-    arg_checker->string=arg_checker->string;
+    arg_checker->string=(char*)malloc(sizeof(char)*strlen(word));
+    strcpy(arg_checker->string,word);
     arg_checker->wr=wr;
     checker_result=add_job_head(wr->tp,NULL,recognizer_work,(void*)arg_checker);
 
@@ -162,17 +163,14 @@ void* recognizer_work(void* arg){
 
 
 	while(!uscita){
-        fprintf(stderr,"CIAO %d\n",(int)list_count(jobs_list));
-		while((first=list_fetch_value(jobs_list,0))==NULL);
+        //fprintf(stderr,"CIAO %d\n",(int)list_count(jobs_list)); TODO remove
+		while((first=list_fetch_value(jobs_list,0))==NULL);//TODO condition vars
 		while((second=list_fetch_value(jobs_list,0))==NULL);
 		while((third=list_fetch_value(jobs_list,0))==NULL);
 		while((skip=list_fetch_value(jobs_list,0))==NULL);
 		if(skip->start==-1){
 			uscita=true;//è arrivato il segnale per la terminazione per il prossimo giro
 		}
-
-
-
 
 		check_word(wr,&first_result,first,string);
         check_word(wr,&second_result,second,string);
@@ -208,7 +206,7 @@ void* recognizer_work(void* arg){
 }
 
 
-int solve_function(List* lista){
+int solve_function(List* lista){//TODO debbugging here
 	List temp_list;
 	List *temp,*appoggio;
 	list_init_(&temp_list);
@@ -250,11 +248,10 @@ int solve_function(List* lista){
 
 		}
 	}
-     fprintf(stderr,"temp size:%d\n",list_size(temp));
 	if(list_size(temp)==1) {
         break;
     } else{
-	    debug(stderr,"list size:");debugInt(stderr,list_size(temp));
+	   // debug(stderr,"list size:");debugInt(stderr,list_size(temp)); //TODO
 	}
 	appoggio=lista;
 	lista=temp;
@@ -384,7 +381,7 @@ void check_word(word_recognizer_t* wr,int* result,Node* node,const char* string)
     future_t* dictionary_result;
     future_t* cache_miss_result;
 
-    fprintf(stderr,"start:%d  end:%d\n",node->start,node->end);
+    fprintf(stderr,"--------------------------------------\nstart:%d  end:%d\n\n",node->start,node->end);// TODO remove
 
     //dictionary
     passed_dictionary=(arg_t*)malloc(sizeof(arg_t));
@@ -412,23 +409,29 @@ void check_word(word_recognizer_t* wr,int* result,Node* node,const char* string)
     if(!t){debug(stderr,"ERRORE malloc recognizer_work");return ;}
     rangestrncpy(t,string,node->start,node->end);
     t[node->end+1]='\0';
-
+    fprintf(stderr,"\n<%s> stringa_base:<%s>\n",t,string);
     if(check_hit_cache(wr,t)==NULL) {
         if(future_get(cache_miss_result)==NULL){
             if(future_get(dictionary_result)!=NULL){
                 *result=node->end-node->start+1;
                 list_push_value(wr->cacheHit,t);
+                fprintf(stderr,"Found in  dictionary\n");//TODO remove
             }else{
                 *result=0;
-                list_push_value(wr->cacheHit,t);
+                list_push_value(wr->cacheMiss,t);
+                fprintf(stderr,"not found in  dictionary\n");
             }
         }else{
+            fprintf(stderr,"found in MISS cache\n");
             *result=0;
         }
     }else{
+        fprintf(stderr,"found in HIT cache\n");
         *result=node->end-node->start+1;
     }
 
+
+    fprintf(stderr,"\nresult:%d\n--------------------------------------\n",*result);
     //free varie
     destroy_arg(passed_c_miss);
     destroy_arg(passed_dictionary);
