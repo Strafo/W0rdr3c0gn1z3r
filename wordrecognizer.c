@@ -384,6 +384,7 @@ void check_word(word_recognizer_t* wr,int* result,Node* node,const char* string)
     future_t* dictionary_result;
     future_t* cache_miss_result;
 
+    fprintf(stderr,"start:%d  end:%d\n",node->start,node->end);
 
     //dictionary
     passed_dictionary=(arg_t*)malloc(sizeof(arg_t));
