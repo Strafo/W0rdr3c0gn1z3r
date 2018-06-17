@@ -170,7 +170,7 @@ void* recognizer_work(void* arg){
         check_word(wr,&third_result,third,string);
 
 		if(!uscita){
-			check_word(wr,skip_result,skip,string);
+			check_word(wr,&skip_result,skip,string);
 		}
 
 		cella=(Cell*)malloc(sizeof(Cell));
@@ -184,8 +184,8 @@ void* recognizer_work(void* arg){
 			list_insert_back(&result,cella->n);
 		}
 
-		if(!usc){//TODO check
-			cella=(Cell*)malloc(sizeof(struct _cell));
+		if(!uscita){
+			cella=(Cell*)malloc(sizeof(Cell));
 			cella->value=skip_result;
 			list_insert_back(&result,cella);
 		}
@@ -228,7 +228,7 @@ int solve_function(List* lista){
 			break;
 		}else{
 			curr=(Cell*)malloc(sizeof( Cella));
-			if(!curr){debug(stderr,"ERRORE malloc solve_function");return -1}
+			if(!curr){debug(stderr,"ERRORE malloc solve_function");return -1;}
 			skip=list_entry(list_front(lista),Cell,n);
 			curr->value=skip->value;
 			list_insert_back(temp,curr->n);
